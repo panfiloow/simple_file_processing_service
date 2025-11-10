@@ -7,7 +7,7 @@ from alembic import context
 
 
 from app.database.base import Base
-from app.models.user import User  # noqa
+from app.models import User  # noqa
 from app.core.config import settings
 
 # this is the Alembic Config object, which provides

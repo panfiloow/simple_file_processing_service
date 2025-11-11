@@ -30,6 +30,23 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int 
     REFRESH_TOKEN_EXPIRE_DAYS: int
 
+    # File Upload
+    UPLOAD_DIR: str = "uploads"
+    MAX_FILE_SIZE: int = 50 * 1024 * 1024  # 50MB
+    MAX_USER_STORAGE: int = 500 * 1024 * 1024  # 500MB
+
+    # Redis
+    REDIS_URL: str = "redis://localhost:6379/0"
+
+    # Email
+    SMTP_SERVER: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USERNAME: str = ""
+    SMTP_PASSWORD: str = ""
+    FROM_EMAIL: str = "noreply@fileprocessing.com"
+
+    ALLOWED_ORIGINS: list = ["http://localhost:3000", "http://127.0.0.1:3000"]
+
     class Config:
         env_file = ".env"
 

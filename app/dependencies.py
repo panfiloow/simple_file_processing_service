@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from app.database.session import get_async_session
+from app.database.session import AsyncSessionLocal
 from app.repositories.user_repository import UserRepository
 from app.repositories.token_repository import TokenRepository
 from app.services.auth_service import AuthService
@@ -11,7 +11,7 @@ from app.schemas.user import UserResponse
 security = HTTPBearer()
 
 async def get_db():
-    async with get_async_session() as session:
+    async with AsyncSessionLocal() as session:
         try:
             yield session
         finally:

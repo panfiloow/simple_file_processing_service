@@ -3,10 +3,10 @@ from fastapi.templating import Jinja2Templates
 from app.services.auth_service import AuthService
 from app.dependencies import get_auth_service
 
-# Настройка Jinja2 templates
+
 templates = Jinja2Templates(directory="app/templates")
 
-view_router = APIRouter()
+view_router = APIRouter(tags=["views"])
 
 async def get_current_user_from_token(request: Request, auth_service: AuthService = Depends(get_auth_service)):
     """Получение текущего пользователя для шаблонов"""

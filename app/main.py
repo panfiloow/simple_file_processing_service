@@ -1,12 +1,14 @@
 from fastapi import FastAPI
-from app.core.config import settings
+from fastapi.staticfiles import StaticFiles
+from app.views.routes import view_router
 
 app = FastAPI()
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
 
-@app.get("/")
-async def root():
-    return {"message": "Simple File Processing Service", "version": settings.VERSION}
+app.include_router(view_router, prefix="")
+
 
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+

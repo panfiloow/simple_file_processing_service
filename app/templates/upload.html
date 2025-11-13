@@ -1,0 +1,253 @@
+{% extends "base.html" %}
+
+{% block title %}Загрузка файлов - File Processing Service{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card">
+            <div class="card-header">
+                <h4 class="card-title mb-0">
+                    <i class="fas fa-upload me-2"></i>Загрузка файлов
+                </h4>
+            </div>
+            <div class="card-body">
+                <!-- Drag & Drop Zone -->
+                <div class="border-2 border-dashed rounded p-5 text-center mb-4" 
+                     id="dropZone"
+                     style="border-style: dashed; border-color: #6c757d; background: #f8f9fa;">
+                    <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-3"></i>
+                    <h5>Перетащите файлы сюда</h5>
+                    <p class="text-muted">или</p>
+                    <input type="file" id="fileInput" multiple class="d-none">
+                    <button class="btn btn-primary" onclick="document.getElementById('fileInput').click()">
+                        <i class="fas fa-folder-open me-2"></i>Выберите файлы
+                    </button>
+                    <div class="mt-2">
+                        <small class="text-muted">Максимальный размер: 50MB. Поддерживаются: JPG, PNG, PDF, TXT</small>
+                    </div>
+                </div>
+
+                <!-- Опции обработки -->
+                <div class="mb-4">
+                    <label class="form-label fw-bold">Операция:</label>
+                    <select class="form-select" id="operationType">
+                        <option value="convert_jpg_to_png">Конвертировать JPG → PNG</option>
+                        <option value="convert_png_to_jpg">Конвертировать PNG → JPG</option>
+                        <option value="convert_txt_to_pdf">Конвертировать TXT → PDF</option>
+                        <option value="compress_zip">Сжать в ZIP</option>
+                        <option value="resize_image">Изменить размер изображения</option>
+                    </select>
+                </div>
+
+                <!-- Дополнительные параметры (показываются для resize) -->
+                <div id="resizeParams" class="row mb-4" style="display: none;">
+                    <div class="col-md-6">
+                        <label class="form-label">Ширина (px)</label>
+                        <input type="number" class="form-control" id="width" value="800">
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Высота (px)</label>
+                        <input type="number" class="form-control" id="height" value="600">
+                    </div>
+                </div>
+
+                <!-- Прогресс загрузки -->
+                <div id="uploadProgress" style="display: none;">
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Загрузка...</span>
+                            <span id="progressPercent">0%</span>
+                        </div>
+                        <div class="progress">
+                            <div id="progressBar" class="progress-bar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Кнопка загрузки -->
+                <div class="d-grid">
+                    <button id="uploadBtn" class="btn btn-success btn-lg" disabled>
+                        <i class="fas fa-upload me-2"></i>Начать обработку
+                    </button>
+                </div>
+
+                <!-- Результаты -->
+                <div id="results" class="mt-4"></div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class FileUploader {
+    constructor() {
+        this.accessToken = localStorage.getItem('access_token');
+        this.selectedFiles = [];
+        this.init();
+    }
+
+    init() {
+        this.setupEventListeners();
+        this.checkAuth();
+    }
+
+    checkAuth() {
+        if (!this.accessToken) {
+            window.location.href = '/login';
+        }
+    }
+
+    setupEventListeners() {
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const operationType = document.getElementById('operationType');
+
+        // Drag & Drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#0d6efd';
+            dropZone.style.background = '#e3f2fd';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.borderColor = '#6c757d';
+            dropZone.style.background = '#f8f9fa';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.style.borderColor = '#6c757d';
+            dropZone.style.background = '#f8f9fa';
+            this.handleFiles(e.dataTransfer.files);
+        });
+
+        // File input
+        fileInput.addEventListener('change', (e) => {
+            this.handleFiles(e.target.files);
+        });
+
+        // Operation type change
+        operationType.addEventListener('change', (e) => {
+            this.toggleResizeParams(e.target.value === 'resize_image');
+        });
+    }
+
+    toggleResizeParams(show) {
+        document.getElementById('resizeParams').style.display = show ? 'block' : 'none';
+    }
+
+    handleFiles(files) {
+        this.selectedFiles = Array.from(files);
+        document.getElementById('uploadBtn').disabled = this.selectedFiles.length === 0;
+        
+        // Показываем информацию о выбранных файлах
+        this.showFileInfo();
+    }
+
+    showFileInfo() {
+        const results = document.getElementById('results');
+        if (this.selectedFiles.length > 0) {
+            let html = '<div class="alert alert-info"><h6>Выбранные файлы:</h6><ul class="mb-0">';
+            this.selectedFiles.forEach(file => {
+                html += `<li>${file.name} (${this.formatFileSize(file.size)})</li>`;
+            });
+            html += '</ul></div>';
+            results.innerHTML = html;
+        } else {
+            results.innerHTML = '';
+        }
+    }
+
+    formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    async uploadFiles() {
+        if (this.selectedFiles.length === 0) return;
+
+        const uploadBtn = document.getElementById('uploadBtn');
+        const progressContainer = document.getElementById('uploadProgress');
+        const progressBar = document.getElementById('progressBar');
+        const progressPercent = document.getElementById('progressPercent');
+
+        uploadBtn.disabled = true;
+        progressContainer.style.display = 'block';
+
+        const results = document.getElementById('results');
+        results.innerHTML = '<div class="alert alert-info">Начата обработка файлов...</div>';
+
+        for (let i = 0; i < this.selectedFiles.length; i++) {
+            const file = this.selectedFiles[i];
+            const progress = ((i / this.selectedFiles.length) * 100).toFixed(0);
+            
+            progressBar.style.width = `${progress}%`;
+            progressPercent.textContent = `${progress}%`;
+
+            await this.uploadSingleFile(file);
+        }
+
+        progressBar.style.width = '100%';
+        progressPercent.textContent = '100%';
+
+        setTimeout(() => {
+            progressContainer.style.display = 'none';
+            uploadBtn.disabled = false;
+            results.innerHTML = '<div class="alert alert-success">Все файлы успешно отправлены на обработку!</div>';
+            this.selectedFiles = [];
+        }, 1000);
+    }
+
+    async uploadSingleFile(file) {
+        const formData = new FormData();
+        formData.append('file', file);
+
+        const operationType = document.getElementById('operationType').value;
+        formData.append('operation', operationType);
+
+        // Добавляем параметры для resize
+        if (operationType === 'resize_image') {
+            const params = {
+                width: parseInt(document.getElementById('width').value),
+                height: parseInt(document.getElementById('height').value)
+            };
+            formData.append('parameters', JSON.stringify(params));
+        }
+
+        try {
+            const response = await fetch('/api/files/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.accessToken}`
+                },
+                body: formData
+            });
+
+            if (!response.ok) {
+                throw new Error('Ошибка загрузки');
+            }
+
+            return await response.json();
+        } catch (error) {
+            console.error('Upload error:', error);
+            throw error;
+        }
+    }
+}
+
+// Инициализация загрузчика
+document.addEventListener('DOMContentLoaded', () => {
+    const uploader = new FileUploader();
+    
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+        uploader.uploadFiles();
+    });
+});
+</script>
+{% endblock %}

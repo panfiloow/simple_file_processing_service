@@ -1,0 +1,243 @@
+{% extends "base.html" %}
+
+{% block title %}Дашборд - File Processing Service{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="h3 mb-0">
+        <i class="fas fa-tachometer-alt me-2 text-primary"></i>Дашборд
+    </h1>
+    <a href="/upload" class="btn btn-primary">
+        <i class="fas fa-upload me-2"></i>Загрузить файл
+    </a>
+</div>
+
+<!-- Статистика -->
+<div class="row mb-4">
+    <div class="col-md-3 mb-3">
+        <div class="card bg-primary text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="filesCount">0</h4>
+                        <p class="card-text">Файлов</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-file fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-success text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="tasksCount">0</h4>
+                        <p class="card-text">Задач</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-tasks fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-warning text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="storageUsed">0 MB</h4>
+                        <p class="card-text">Использовано</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-hdd fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3 mb-3">
+        <div class="card bg-info text-white">
+            <div class="card-body">
+                <div class="d-flex justify-content-between">
+                    <div>
+                        <h4 class="card-title" id="activeTasks">0</h4>
+                        <p class="card-text">Активных задач</p>
+                    </div>
+                    <div class="align-self-center">
+                        <i class="fas fa-sync fa-2x opacity-50"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Последние файлы -->
+<div class="row">
+    <div class="col-lg-8 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-history me-2"></i>Последние файлы
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="recentFiles" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Активные задачи -->
+    <div class="col-lg-4 mb-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title mb-0">
+                    <i class="fas fa-tasks me-2"></i>Активные задачи
+                </h5>
+            </div>
+            <div class="card-body">
+                <div id="activeTasksList" class="text-center py-4">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Загрузка...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+class Dashboard {
+    constructor() {
+        this.accessToken = localStorage.getItem('access_token');
+        this.init();
+    }
+
+    async init() {
+        await this.loadStats();
+        await this.loadRecentFiles();
+        await this.loadActiveTasks();
+        setInterval(() => this.loadActiveTasks(), 5000); // Обновление каждые 5 сек
+    }
+
+    async apiCall(url) {
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${this.accessToken}`
+            }
+        });
+        
+        if (response.status === 401) {
+            await this.refreshToken();
+            return this.apiCall(url);
+        }
+        
+        return response;
+    }
+
+    async refreshToken() {
+        const refreshToken = localStorage.getItem('refresh_token');
+        const response = await fetch('/api/auth/refresh', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ refresh_token: refreshToken })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            localStorage.setItem('access_token', data.access_token);
+            this.accessToken = data.access_token;
+        } else {
+            window.location.href = '/login';
+        }
+    }
+
+    async loadStats() {
+        // Заглушки - замените реальными API вызовами
+        document.getElementById('filesCount').textContent = '5';
+        document.getElementById('tasksCount').textContent = '12';
+        document.getElementById('storageUsed').textContent = '24.5 MB';
+        document.getElementById('activeTasks').textContent = '2';
+    }
+
+    async loadRecentFiles() {
+        const filesContainer = document.getElementById('recentFiles');
+        
+        // Заглушка - замените реальным API
+        filesContainer.innerHTML = `
+            <div class="list-group list-group-flush">
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-file-image text-primary me-2"></i>
+                        <span>image.png</span>
+                    </div>
+                    <small class="text-muted">2 часа назад</small>
+                </div>
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-file-pdf text-danger me-2"></i>
+                        <span>document.pdf</span>
+                    </div>
+                    <small class="text-muted">5 часов назад</small>
+                </div>
+                <div class="list-group-item d-flex justify-content-between align-items-center">
+                    <div>
+                        <i class="fas fa-file-archive text-warning me-2"></i>
+                        <span>archive.zip</span>
+                    </div>
+                    <small class="text-muted">вчера</small>
+                </div>
+            </div>
+        `;
+    }
+
+    async loadActiveTasks() {
+        const tasksContainer = document.getElementById('activeTasksList');
+        
+        // Заглушка - замените реальным API
+        tasksContainer.innerHTML = `
+            <div class="list-group list-group-flush">
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Конвертация JPG → PNG</span>
+                        <span class="badge bg-warning">В процессе</span>
+                    </div>
+                    <div class="progress mb-2">
+                        <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 75%"></div>
+                    </div>
+                    <small class="text-muted">Обработано 75%</small>
+                </div>
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold">Сжатие файлов</span>
+                        <span class="badge bg-info">Ожидание</span>
+                    </div>
+                    <small class="text-muted">В очереди</small>
+                </div>
+            </div>
+        `;
+    }
+}
+
+// Инициализация дашборда
+document.addEventListener('DOMContentLoaded', () => {
+    if (!localStorage.getItem('access_token')) {
+        window.location.href = '/login';
+    } else {
+        new Dashboard();
+    }
+});
+</script>
+{% endblock %}

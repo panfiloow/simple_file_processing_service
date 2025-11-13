@@ -1,3 +1,4 @@
+from datetime import timezone
 from typing import List, Optional
 import uuid
 from sqlalchemy import select
@@ -49,7 +50,7 @@ class UserRepository(BaseRepository[User], IUserRepository):
         Специфичный метод для User
         """
         from datetime import datetime
-        return await self.update(user_id, {"last_login_at": datetime.now()})
+        return await self.update(user_id, {"last_login_at": datetime.now(timezone.utc)})
 
     async def deactivate_user(self, user_id: uuid.UUID) -> Optional[User]:
         """

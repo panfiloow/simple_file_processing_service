@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
 from typing import Optional
 import uuid
-from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
-from app.schemas.token import TokenResponse, RefreshTokenRequest
+from app.schemas.user import UserCreate, UserLogin, UserResponse
+from app.schemas.token import TokenResponse, RefreshTokenRequest, Token
 
 class IAuthService(ABC):
     

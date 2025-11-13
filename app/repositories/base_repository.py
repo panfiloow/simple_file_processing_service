@@ -1,16 +1,17 @@
-from typing import List, Optional
+from typing import List, Optional, Type
 import uuid
 from sqlalchemy import select, update as sql_update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.repositories.interfaces.base_repository import T, IBaseRepository
 
+
 class BaseRepository(IBaseRepository[T]):
     """
     Репозиторий с базовыми CRUD операциями
     """
 
-    def __init__(self, db: AsyncSession, model = T):
+    def __init__(self, db: AsyncSession, model: Type[T]):
         self.db = db
         self.model = model
 
@@ -64,3 +65,9 @@ class BaseRepository(IBaseRepository[T]):
     async def count(self) -> int:
         result = await self.db.execute(select(func.count(self.model.id)))
         return result.scalar_one()
+    
+    async def exists(self, id: uuid.UUID) -> bool:  
+        result = await self.db.execute(
+            select(self.model.id).where(self.model.id == id)
+        )
+        return result.scalar_one_or_none() is not None

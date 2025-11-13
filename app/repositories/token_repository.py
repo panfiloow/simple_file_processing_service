@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List, Optional
 import uuid
 from sqlalchemy import and_, func, select
@@ -28,7 +28,7 @@ class TokenRepository(BaseRepository[RefreshToken], ITokenRepository):
                 and_(
                     RefreshToken.user_id == user_id,
                     RefreshToken.is_active,
-                    RefreshToken.expires_at > datetime.now()
+                    RefreshToken.expires_at > datetime.now(timezone.utc)
                 )
             )
         )
@@ -61,11 +61,11 @@ class TokenRepository(BaseRepository[RefreshToken], ITokenRepository):
     
     async def is_token_active(self, token_id: uuid.UUID) -> bool:
         token = await self.get_by_id(token_id)
-        return bool(token and token.is_active and token.expires_at > datetime.now())
+        return bool(token and token.is_active and token.expires_at > datetime.now(timezone.utc))
     
     async def cleanup_expired_tokens(self) -> int:
         result = await self.db.execute(
-            select(RefreshToken).where(RefreshToken.expires_at <= datetime.now())
+            select(RefreshToken).where(RefreshToken.expires_at <= datetime.now(timezone.utc))
         )
         expired_tokens = result.scalars().all()
         

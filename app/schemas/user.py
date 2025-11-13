@@ -4,6 +4,7 @@ import uuid
 from datetime import datetime
 
 class UserBase(BaseModel):
+    username: str
     email: EmailStr
 
 class UserCreate(UserBase):
@@ -14,6 +15,7 @@ class UserLogin(BaseModel):
     password: str
 
 class UserUpdate(BaseModel):
+    username: Optional[str] = None
     email: Optional[EmailStr] = None
     is_active: Optional[bool] = None
 
@@ -24,9 +26,4 @@ class UserResponse(UserBase):
     is_active: bool
     is_verified: bool
     created_at: datetime
-    updated_at: Optional[datetime] = None
-    last_login_at: Optional[datetime] = None
-
-class UserWithTokensResponse(UserResponse):
-    access_token: str
-    refresh_token: str
+    updated_at: datetime

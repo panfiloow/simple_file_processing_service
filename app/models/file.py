@@ -32,8 +32,8 @@ class File(Base):
     uploaded_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     is_processed: Mapped[bool] = mapped_column(Boolean, default=False)
 
-    user = relationship("User", back_populates="files", lazy="selectin")
-    tasks = relationship("Task", back_populates="file", cascade="all, delete-orphan", lazy="selectin")
+    user = relationship("User", back_populates="files", lazy="select")
+    tasks = relationship("Task", back_populates="file", cascade="all, delete-orphan", lazy="select")
 
     __table_args__ = (
         Index('idx_files_user_uploaded', 'user_id', 'uploaded_at'),

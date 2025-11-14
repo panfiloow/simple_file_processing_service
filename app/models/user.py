@@ -27,7 +27,7 @@ class User(Base):
         nullable=True
     )
 
-    files = relationship("File", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
-    tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
-    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
+    files = relationship("File", back_populates="user", cascade="all, delete-orphan", lazy="select")
+    tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan", lazy="select")
+    refresh_tokens = relationship("RefreshToken", back_populates="user", cascade="all, delete-orphan", lazy="select")
     

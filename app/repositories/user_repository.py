@@ -24,6 +24,8 @@ class UserRepository(BaseRepository[User], IUserRepository):
             select(User).where(User.email == email)
         )
         return result.scalar_one_or_none()
+    
+    
 
     async def get_all_active(self) -> List[User]:
         """

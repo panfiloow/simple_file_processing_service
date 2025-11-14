@@ -28,7 +28,7 @@ class RefreshToken(Base):
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
-    user = relationship("User", back_populates="refresh_tokens", lazy="selectin")
+    user = relationship("User", back_populates="refresh_tokens", lazy="select")
 
     __table_args__ = (
         Index('idx_refresh_tokens_user_active', 'user_id', 'is_active'),  

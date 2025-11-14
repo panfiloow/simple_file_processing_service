@@ -53,8 +53,8 @@ class Task(Base):
     completed_at: Mapped[Optional[datetime]] = mapped_column(DateTime(timezone=True), nullable=True)
     notification_sent: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
 
-    user = relationship("User", back_populates="tasks", lazy="selectin")
-    file = relationship("File", back_populates="tasks", lazy="selectin")
+    user = relationship("User", back_populates="tasks", lazy="select")
+    file = relationship("File", back_populates="tasks", lazy="select")
 
 
     __table_args__ = (

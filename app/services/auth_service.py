@@ -33,6 +33,7 @@ class AuthService(IAuthService):
             raise UserAlreadyExistsException()
         
         user = User(
+            username = user_data.username,
             email = user_data.email,
             hashed_password = get_password_hash(user_data.password)
         )

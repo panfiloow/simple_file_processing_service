@@ -3,7 +3,7 @@ from typing import List, Optional
 import uuid
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from datetime import datetime
 from app.repositories.interfaces.user_repository import IUserRepository
 from app.repositories.base_repository import BaseRepository
 from app.models import User
@@ -49,7 +49,6 @@ class UserRepository(BaseRepository[User], IUserRepository):
         Обновить время последнего входа пользователя
         Специфичный метод для User
         """
-        from datetime import datetime
         return await self.update(user_id, {"last_login_at": datetime.now(timezone.utc)})
 
     async def deactivate_user(self, user_id: uuid.UUID) -> Optional[User]:

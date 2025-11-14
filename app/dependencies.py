@@ -25,8 +25,8 @@ async def get_token_repository(db = Depends(get_db)) -> TokenRepository:
     return TokenRepository(db)
 
 async def get_auth_service(
-    user_repo = Depends(get_user_repository),
-    token_repo = Depends(get_token_repository)
+    user_repo: UserRepository = Depends(get_user_repository),
+    token_repo: TokenRepository = Depends(get_token_repository)
 ) -> AuthService:
     return AuthService(user_repo, token_repo)
 

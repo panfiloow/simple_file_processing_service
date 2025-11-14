@@ -21,6 +21,11 @@ class User(Base):
     is_verified: Mapped[bool] = mapped_column(Boolean, default=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False, onupdate=func.now())
+    
+    last_login_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), 
+        nullable=True
+    )
 
     files = relationship("File", back_populates="user", cascade="all, delete-orphan", lazy="selectin")
     tasks = relationship("Task", back_populates="user", cascade="all, delete-orphan", lazy="selectin")

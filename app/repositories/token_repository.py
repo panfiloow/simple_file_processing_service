@@ -92,7 +92,7 @@ class TokenRepository(BaseRepository[RefreshToken], ITokenRepository):
                 and_(
                     RefreshToken.user_id == user_id,
                     RefreshToken.is_active,
-                    RefreshToken.expires_at > datetime.utcnow()
+                    RefreshToken.expires_at > datetime.now(timezone.utc)
                 )
             )
         )

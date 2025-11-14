@@ -1,6 +1,6 @@
 from typing import List, Optional, Dict
 import uuid
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from sqlalchemy import select, and_, func
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -72,9 +72,9 @@ class TaskRepository(BaseRepository[Task], ITaskRepository):
         update_data = {"status": status}
         
         if status == 'processing':
-            update_data["started_at"] = datetime.utcnow()
+            update_data["started_at"] = datetime.now(timezone.utc)
         elif status in ['completed', 'failed']:
-            update_data["completed_at"] = datetime.utcnow()
+            update_data["completed_at"] = datetime.now()
         
         if error_message:
             update_data["error_message"] = error_message
@@ -91,7 +91,7 @@ class TaskRepository(BaseRepository[Task], ITaskRepository):
     ) -> Optional[Task]:
         update_data = {
             "status": "completed",
-            "completed_at": datetime.utcnow(),
+            "completed_at": datetime.now(timezone.utc),
             "progress": 100
         }
         if result_file_path:
@@ -102,7 +102,7 @@ class TaskRepository(BaseRepository[Task], ITaskRepository):
     async def mark_as_failed(self, task_id: uuid.UUID, error_message: str) -> Optional[Task]:
         return await self.update(task_id, {
             "status": "failed",
-            "completed_at": datetime.utcnow(),
+            "completed_at": datetime.now(timezone.utc),
             "error_message": error_message
         })
 
@@ -151,7 +151,7 @@ class TaskRepository(BaseRepository[Task], ITaskRepository):
         return await self.update(task_id, {"notification_sent": True})
 
     async def get_old_completed_tasks(self, days_old: int = 30) -> List[Task]:
-        cutoff_date = datetime.utcnow() - timedelta(days=days_old)
+        cutoff_date = datetime.now(timezone.utc) - timedelta(days=days_old)
         result = await self.db.execute(
             select(Task).where(
                 and_(

@@ -25,8 +25,8 @@ class RefreshToken(Base):
     device_info: Mapped[str] = mapped_column(String(512))
     ip_address: Mapped[str] = mapped_column(String(45))
     is_active: Mapped[bool] = mapped_column(Boolean, default=True, nullable=False)
-    created_at: Mapped[datetime] = mapped_column(DateTime, server_default=func.now(), nullable=False)
-    expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
+    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
 
     user = relationship("User", back_populates="refresh_tokens", lazy="selectin")
 
